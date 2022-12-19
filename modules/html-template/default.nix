@@ -1,10 +1,11 @@
 { pkgs, config, lib, ... }:
 let
   inherit (lib) types mkOption;
+  item-template = builtins.replaceStrings [ "`" ] [ "@backtick@" ] config.html.template.item-template;
   templateFinal = builtins.replaceStrings [
     "@json-data@"                               "@item-template@"
   ] [
-    (builtins.toJSON config.target.lyraReady)   config.html.template.item-template
+    (builtins.toJSON config.target.lyraReady)   item-template
   ] (builtins.readFile ./template.html);
 in {
   options.html.template = {
@@ -18,15 +19,17 @@ in {
       '';
       type = types.str;
       default = ''
-        <div>
-          <h2><span>@flake@</span> @key@</h2>
-          <p><b>Type:</b> @type@</p>
-          <p><b>Example:</b> @example@</p>
-          <p><b>Default:</b> @default@</p>
-          <md-block>
+        <md-block>
+          # `@flake@` - `@key@`
+
+          **Type**: @type@
+
+          **Example**: `@example@`
+
+          **Default**: `@default@`
+
           @description@
-          </md-block>
-        </div>
+        </md-block>
       '';
     };
   };

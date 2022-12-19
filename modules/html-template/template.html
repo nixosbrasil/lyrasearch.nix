@@ -31,6 +31,9 @@
         if (item === undefined) {
             return ''
         }
+        if (item === null) {
+            return 'null'
+        }
         if (typeof item === 'number') {
             return String(item)
         }
@@ -49,13 +52,13 @@
         if (typeof item === 'string') {
             return item
         }
-        switch (item._type) {
+        switch (item?._type) {
             case 'literalExpression':
-                return `<code>${item.text}</code>`
+                return `\`${item.text}\``
             case 'literalMD':
                 return `<md-span>${item.text}</md-span>`
             default:
-                return `<code>${JSON.stringify(item)}</code>`
+                return `\`${JSON.stringify(item)}\``
         }
     }
     function handleLyrasearchInput() {
@@ -63,17 +66,27 @@
         const results = search(LYRA_DB, {
             term: query,
             properties: '*'
-        }).hits
-        console.log('inputevent', results)
-        LYRASEARCH_CONTAINER_REF.childNodes.forEach(n => {
-            if (n.id !== 'lyrasearch-search-input') {
-                n.remove()
-            }
         })
-        results.forEach(res => {
-            let data = {...res.document};
+        const resultHits = results.hits
+        console.log('inputevent', results)
+        let toCheck = []
+        for (let i = 0; i < LYRASEARCH_CONTAINER_REF.childNodes.length; i++) {
+            toCheck.push(LYRASEARCH_CONTAINER_REF.childNodes[i])
+        }
+        for (let i = 0; i < toCheck.length; i++) {
+            let child = toCheck[i];
+            if (child.id !== 'lyrasearch-search-input') {
+                child.parentNode.removeChild(child)
+                console.log('removing', child)
+            }
+        }
+        for (let i = 0; i < resultHits.length; i++) {
+            let data = { ...resultHits[i].document }
             if (!data.example) {
                 data.example = undefined
+            }
+            if (!data.default) {
+                data.default = undefined
             }
             let template = LYRASEARCH_ITEM_TEPLATE
             Object.keys(data).forEach(key => {
@@ -81,10 +94,10 @@
             })
             let elem = document.createElement('div')
             elem = LYRASEARCH_CONTAINER_REF.appendChild(elem)
-            elem.outerHTML = template;
+            elem.outerHTML = template.replaceAll("@backtick@", "`");
             elem.className +=' lyrasearch-item'
             console.log(elem.classList)
-        })
+        }
     }
     LYRASEARCH_INPUT_REF.addEventListener('input', handleLyrasearchInput)
 </script>
