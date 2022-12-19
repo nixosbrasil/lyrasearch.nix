@@ -19,8 +19,13 @@ in {
       type = types.str;
       default = ''
         <div>
-          <h2>@key@ <span>@flake@</span></h2>
-          <p>@description@</p>
+          <h2><span>@flake@</span> @key@</h2>
+          <p><b>Type:</b> @type@</p>
+          <p><b>Example:</b> @example@</p>
+          <p><b>Default:</b> @default@</p>
+          <md-block>
+          @description@
+          </md-block>
         </div>
       '';
     };

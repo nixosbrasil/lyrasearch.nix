@@ -4,6 +4,7 @@
     const LYRASEARCH_DATA = @json-data@;
     const LYRASEARCH_ITEM_TEPLATE = `@item-template@`;
 </script>
+<script type="module" src="https://md-block.verou.me/md-block.js"></script>
 <div id="lyrasearch-container">
 </div>
 <script type="module">
@@ -26,6 +27,37 @@
         defaultLanguage: 'english'
     })
     await insertBatch(LYRA_DB, LYRASEARCH_DATA)
+    function nixifyItem(item) {
+        if (item === undefined) {
+            return ''
+        }
+        if (typeof item === 'number') {
+            return String(item)
+        }
+        if (Array.isArray(item)) {
+            let ret = "["
+            ret += item.map(i => `( ${nixifyItem(i)} )`).join(' ')
+            ret += "]"
+            return ret
+        }
+        return '<nixify stub>'
+    }
+    function htmlifyItem(item) {
+        if (item === undefined) {
+            return ''
+        }
+        if (typeof item === 'string') {
+            return item
+        }
+        switch (item._type) {
+            case 'literalExpression':
+                return `<code>${item.text}</code>`
+            case 'literalMD':
+                return `<md-span>${item.text}</md-span>`
+            default:
+                return `<code>${JSON.stringify(item)}</code>`
+        }
+    }
     function handleLyrasearchInput() {
         const query = LYRASEARCH_INPUT_REF.value
         const results = search(LYRA_DB, {
@@ -39,10 +71,13 @@
             }
         })
         results.forEach(res => {
-            let data = res.document;
+            let data = {...res.document};
+            if (!data.example) {
+                data.example = undefined
+            }
             let template = LYRASEARCH_ITEM_TEPLATE
             Object.keys(data).forEach(key => {
-                template = template.replaceAll(`@${key}@`, String(data[key]))
+                template = template.replaceAll(`@${key}@`, htmlifyItem(data[key]))
             })
             let elem = document.createElement('div')
             elem = LYRASEARCH_CONTAINER_REF.appendChild(elem)
