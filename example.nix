@@ -3,7 +3,7 @@ let
   docGen = pkgs.callPackage ./default.nix {};
 in docGen {
   evaluated-module-systems = {
-    "github:lucasew/nixcfg/whiterun" = (builtins.getFlake "github:lucasew/nixcfg").nixosConfigurations.whiterun;
+    "github:lucasew/nixcfg#nixosConfigurations.whiterun" = (builtins.getFlake "github:lucasew/nixcfg").nixosConfigurations.whiterun;
     # "climod#example" = (import "${pkgs.fetchFromGitHub {
     #   owner = "nixosbrasil";
     #   repo = "climod";
