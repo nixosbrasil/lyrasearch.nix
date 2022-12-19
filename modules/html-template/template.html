@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<script>
+    const LYRASEARCH_DATA = @json-data@;
+    const LYRASEARCH_ITEM_TEPLATE = `@item-template@`;
+</script>
+<div id="lyrasearch-container">
+</div>
+<script type="module">
+    import { create, search, insertBatch } from "https://unpkg.com/@lyrasearch/lyra@latest/dist/esm/src/lyra.js";
+
+    const LYRASEARCH_CONTAINER_REF = document.getElementById('lyrasearch-container');
+    if (!document.getElementById('lyrasearch-search-input')) {
+        const linput = document.createElement('input')
+        linput.id = 'lyrasearch-search-input'
+        LYRASEARCH_CONTAINER_REF.appendChild(linput)
+    }
+    const LYRASEARCH_INPUT_REF = document.getElementById('lyrasearch-search-input');
+    let LYRA_DB = create({
+        schema: {
+            key: 'string',
+            flake: 'string',
+            description: 'string',
+            type: 'string'
+        },
+        defaultLanguage: 'english'
+    })
+    await insertBatch(LYRA_DB, LYRASEARCH_DATA)
+    function handleLyrasearchInput() {
+        const query = LYRASEARCH_INPUT_REF.value
+        const results = search(LYRA_DB, {
+            term: query,
+            properties: '*'
+        }).hits
+        console.log('inputevent', results)
+        LYRASEARCH_CONTAINER_REF.childNodes.forEach(n => {
+            if (n.id !== 'lyrasearch-search-input') {
+                n.remove()
+            }
+        })
+        results.forEach(res => {
+            let data = res.document;
+            let template = LYRASEARCH_ITEM_TEPLATE
+            Object.keys(data).forEach(key => {
+                template = template.replaceAll(`@${key}@`, String(data[key]))
+            })
+            let elem = document.createElement('div')
+            elem = LYRASEARCH_CONTAINER_REF.appendChild(elem)
+            elem.outerHTML = template;
+            elem.className +=' lyrasearch-item'
+            console.log(elem.classList)
+        })
+    }
+    LYRASEARCH_INPUT_REF.addEventListener('input', handleLyrasearchInput)
+</script>
