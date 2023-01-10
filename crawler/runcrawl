@@ -10,7 +10,8 @@ function crawl_derivations {
     cat <<EOF > $tmpfile
         builtins.getFlake "$flakeURI"
 EOF
-    nix-env -f $tmpfile "${envArgs[@]}" "$@"
+    envArgs+=(-f $tmpfile)
+    nix-env "${envArgs[@]}" "$@"
 }
 
 function crawl_options {
