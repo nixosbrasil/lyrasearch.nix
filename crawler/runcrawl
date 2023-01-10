@@ -2,9 +2,11 @@
 
 function crawl_derivations {
     envArgs=(-qa --meta --json)
-    flakeURI="$1";shift
-    if [ $# -gt 0 ]; then
-        envArgs+=(-A "$1"); shift
+    IFS='#' read -r flakeURI flakeAttr <<< "$1"
+    shift
+    echo $flakeURI $flakeAttr
+    if [ ! -z "$flakeAttr" ]; then
+        envArgs+=(-A "$flakeAttr"); shift
     fi
     tmpfile=$(mktemp).nix
     cat <<EOF > $tmpfile
@@ -15,8 +17,9 @@ EOF
 }
 
 function crawl_options {
-    flakeURI="$1";shift
-    flakeAttr="$1";shift
+    IFS='#' read -r flakeURI flakeAttr <<< "$1"
+    shift
+    echo $flakeURI $flakeAttr
     tmpfile=$(mktemp).nix
     cat <<EOF > $tmpfile
     let
