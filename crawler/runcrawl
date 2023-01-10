@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+function crawl_derivations {
+    envArgs=(-qa --meta --json)
+    flakeURI="$1";shift
+    if [ $# -gt 0 ]; then
+        envArgs+=(-A "$1"); shift
+    fi
+    tmpfile=$(mktemp).nix
+    cat <<EOF > $tmpfile
+        builtins.getFlake "$flakeURI"
+EOF
+    nix-env -f $tmpfile "${envArgs[@]}" "$@"
+}
+
+function crawl_options {
+    flakeURI="$1";shift
+    flakeAttr="$1";shift
+    tmpfile=$(mktemp).nix
+    cat <<EOF > $tmpfile
+    let
+        pkgs = import <nixpkgs> {};
+        flake = builtins.getFlake "$flakeURI";
+        doc = pkgs.nixosOptionsDoc { inherit (flake.$flakeAttr) options; };
+    in doc.optionsNix
+EOF
+
+    nix eval -f $tmpfile --json "$@"
+}
+
